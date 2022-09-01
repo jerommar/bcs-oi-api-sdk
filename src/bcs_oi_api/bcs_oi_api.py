@@ -112,7 +112,9 @@ class BCSOIAPI:
         region: str,
         api_version: str = "v2",
         server: str = "api-cx.cisco.com",
+        authentication: bool = True,
     ) -> None:
+        self.authentication = authentication
         self.client_id = client_id
         self.client_secret = client_secret
         self.server = server
@@ -120,7 +122,8 @@ class BCSOIAPI:
         self.api_version = api_version
         self.jwt = None
 
-        self._obtain_jwt()
+        if self.authentication:
+            self._obtain_jwt()
 
     def _obtain_jwt(self) -> None:
         """
@@ -185,11 +188,13 @@ class BCSOIAPI:
         :return: A generator which yields instances of objects of the model given as input for API endpoints
         """
         # check and renew JWT if needed
-        self._check_and_renew_jwt()
+        if self.authentication:
+            self._check_and_renew_jwt()
 
         # Add Authorization to the headers
         headers = headers if headers is not None else {}
-        headers["Authorization"] = f"Bearer {self.jwt}"
+        if self.authentication:
+            headers["Authorization"] = f"Bearer {self.jwt}"
 
         # Constructing the url
         url = f"https://{self.server}/{self.region}/bcs/{self.api_version}/{model.url_path()}"
