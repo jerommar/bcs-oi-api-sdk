@@ -113,6 +113,8 @@ class BCSOIAPI:
         api_version: str = "v2",
         server: str = "api-cx.cisco.com",
         authentication: bool = True,
+        https: bool = True,
+        torii: bool = True,
     ) -> None:
         self.authentication = authentication
         self.client_id = client_id
@@ -121,6 +123,8 @@ class BCSOIAPI:
         self.region = region
         self.api_version = api_version
         self.jwt = None
+        self.https = https
+        self.torii = torii
 
         if self.authentication:
             self._obtain_jwt()
@@ -197,7 +201,10 @@ class BCSOIAPI:
             headers["Authorization"] = f"Bearer {self.jwt}"
 
         # Constructing the url
-        url = f"https://{self.server}/{self.region}/bcs/{self.api_version}/{model.url_path()}"
+
+        protocol = "https" if self.https else "http"
+        prefix = f"{self.region}/bcs/" if self.torii else ""
+        url = f"{protocol}://{self.server}/{prefix}{self.api_version}/{model.url_path()}"
         if filter_:
             url = url + "?"
             for k, v in filter_.dict().items():
